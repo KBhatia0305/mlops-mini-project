@@ -7,19 +7,8 @@ import os
 import dagshub
 
 # Set up DagsHub credentials for MLflow tracking
-dagshub_token = os.getenv("DAGSHUB_PAT")
-
-if not dagshub_token:
-    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
-
-os.environ["MLFLOW_TRACKING_USERNAME"] = "KBhatia0305"
-os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
-
-dagshub.init(
-    repo_owner="KBhatia0305",
-    repo_name="mlops-mini-project",
-    mlflow=True
-)
+mlflow.set_tracking_uri('https://dagshub.com/KBhatia0305/mlops-mini-project.mlflow')
+dagshub.init(repo_owner='KBhatia0305', repo_name='mlops-mini-project', mlflow=True)
 
 # logging
 logger = logging.getLogger('model_registration')
@@ -55,7 +44,8 @@ def load_model_info(file_path: str) -> dict:
 def register_model(model_name: str, model_info: dict):
     """Register the model to the MLflow Model Registry."""
     try:
-        model_uri = f"runs:/{model_info['run_id']}/{model_info['model_path']}"
+        # Build model URI using model_id
+        model_uri = f"models:/{model_info['model_id']}"
         
         # Register the model
         model_version = mlflow.register_model(model_uri, model_name)
@@ -67,11 +57,11 @@ def register_model(model_name: str, model_info: dict):
             version=model_version.version,
             stage="Staging"
         )
-        
-        logger.debug(f'Model {model_name} version {model_version.version} registered and transitioned to Staging.')
+
+        print(f"Model registered successfully. Version: {model_version.version}")
+
     except Exception as e:
-        logger.error('Error during model registration: %s', e)
-        raise
+        print(f"Error during model registration: {e}")
 
 def main():
     try:

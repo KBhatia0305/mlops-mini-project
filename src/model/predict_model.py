@@ -12,19 +12,8 @@ import dagshub
 import os
 
 # Set up DagsHub credentials for MLflow tracking
-dagshub_token = os.getenv("DAGSHUB_PAT")
-
-if not dagshub_token:
-    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
-
-os.environ["MLFLOW_TRACKING_USERNAME"] = "KBhatia0305"
-os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
-
-dagshub.init(
-    repo_owner="KBhatia0305",
-    repo_name="mlops-mini-project",
-    mlflow=True
-)
+mlflow.set_tracking_uri('https://dagshub.com/KBhatia0305/mlops-mini-project.mlflow')
+dagshub.init(repo_owner='KBhatia0305', repo_name='mlops-mini-project', mlflow=True)
 
 # logging configuration
 logger = logging.getLogger('model_evaluation')
@@ -103,10 +92,10 @@ def save_metrics(metrics: dict, file_path: str) -> None:
         logger.error('Error occurred while saving the metrics: %s', e)
         raise
 
-def save_model_info(run_id: str, model_path: str, file_path: str) -> None:
-    """Save the model run ID and path to a JSON file."""
+def save_model_info(model_id: str, model_path: str, file_path: str) -> None:
+    """Save the model's model ID and path to a JSON file."""
     try:
-        model_info = {'run_id': run_id, 'model_path': model_path}
+        model_info = {'model_id': model_id, 'model_path': model_path}
         with open(file_path, 'w') as file:
             json.dump(model_info, file, indent=4)
         logger.debug('Model info saved to %s', file_path)
@@ -115,7 +104,7 @@ def save_model_info(run_id: str, model_path: str, file_path: str) -> None:
         raise
 
 def main():
-    mlflow.set_experiment("fresh-new-experiment-2")
+    mlflow.set_experiment("Final Experiment")
     with mlflow.start_run() as run:  # Start an MLflow run
         try:
             clf = load_model('./models/model.pkl')
@@ -139,11 +128,12 @@ def main():
                     mlflow.log_param(param_name, param_value)
             
             # Log model to MLflow
-            mlflow.sklearn.log_model(clf, name="model")
+            model_info1 = mlflow.sklearn.log_model(clf, name="model")
             print("Run ID:", run.info.run_id)
+            print("Model ID:", model_info1.model_id)
             
             # Save model info
-            save_model_info(run.info.run_id, "model", 'reports/experiment_info.json')
+            save_model_info(model_info1.model_id, "model", 'reports/experiment_info.json')
             
             # Log the metrics file to MLflow
             mlflow.log_artifact('reports/metrics.json')
