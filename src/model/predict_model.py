@@ -11,8 +11,20 @@ import mlflow.sklearn
 import dagshub
 import os
 
-mlflow.set_tracking_uri('https://dagshub.com/KBhatia0305/mlops-mini-project.mlflow')
-dagshub.init(repo_owner='KBhatia0305', repo_name='mlops-mini-project', mlflow=True)
+# Set up DagsHub credentials for MLflow tracking
+dagshub_token = os.getenv("DAGSHUB_PAT")
+
+if not dagshub_token:
+    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+os.environ["MLFLOW_TRACKING_USERNAME"] = "KBhatia0305"
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+dagshub.init(
+    repo_owner="KBhatia0305",
+    repo_name="mlops-mini-project",
+    mlflow=True
+)
 
 # logging configuration
 logger = logging.getLogger('model_evaluation')
@@ -103,7 +115,7 @@ def save_model_info(run_id: str, model_path: str, file_path: str) -> None:
         raise
 
 def main():
-    mlflow.set_experiment("dvc-pipeline")
+    mlflow.set_experiment("fresh-new-experiment-2")
     with mlflow.start_run() as run:  # Start an MLflow run
         try:
             clf = load_model('./models/model.pkl')
@@ -127,7 +139,8 @@ def main():
                     mlflow.log_param(param_name, param_value)
             
             # Log model to MLflow
-            mlflow.sklearn.log_model(clf, "model")
+            mlflow.sklearn.log_model(clf, name="model")
+            print("Run ID:", run.info.run_id)
             
             # Save model info
             save_model_info(run.info.run_id, "model", 'reports/experiment_info.json')
