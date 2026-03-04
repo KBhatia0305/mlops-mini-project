@@ -1,4 +1,4 @@
 [core]
     remote = myremote
 ['remote "myremote"']
-    url = C:\Users\kbhat\AppData\Local\Temp
+    url = s3://krishna1-mlfow-bucket-session22
