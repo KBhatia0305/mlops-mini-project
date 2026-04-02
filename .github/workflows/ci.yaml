@@ -33,9 +33,17 @@ jobs:
         run: |
           dvc repro 
 
+
       - name: Run model tests
         env:
           DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }}
         run: |
           python -m unittest tests/test_model.py
+      
+
+      - name: Promote model to production
+        if: success()   # this line means that this step will only execute if all the previous steps ran successfully
+        env:
+          DAGSHUB_PAT: ${{ secrets.DAGSHUB_PAT }}
+        run: python scripts/promote_model.py
    
