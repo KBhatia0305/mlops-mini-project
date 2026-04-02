@@ -10,7 +10,7 @@ jobs:
       - name: code checkout
         uses: actions/checkout@v3 
 
-      - name: steup python
+      - name: setup python
         uses: actions/setup-python@v2
         with: 
           python-version: '3.14'
