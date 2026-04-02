@@ -5,7 +5,7 @@ import mlflow
 import pickle
 import os
 import pandas as pd
-import dagshub
+
 import numpy as np
 import pandas as pd
 import os
@@ -69,8 +69,19 @@ def normalize_text(text):
 
 
 # Set up DagsHub credentials for MLflow tracking
-mlflow.set_tracking_uri('https://dagshub.com/KBhatia0305/mlops-mini-project.mlflow')
-dagshub.init(repo_owner='KBhatia0305', repo_name='mlops-mini-project', mlflow=True)
+dagshub_token = os.getenv("DAGSHUB_PAT")
+if not dagshub_token:
+    raise EnvironmentError("DAGSHUB_PAT environment variable is not set")
+
+os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
+os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
+
+dagshub_url = "https://dagshub.com"
+repo_owner = "KBhatia0305"
+repo_name = "mlops-mini-project"
+
+# Set up MLflow tracking URI
+mlflow.set_tracking_uri(f'{dagshub_url}/{repo_owner}/{repo_name}.mlflow')
 
 app = Flask(__name__)
 
@@ -105,8 +116,12 @@ def predict():
     # bow
     features = vectorizer.transform([text])
 
+    # Convert sparse matrix to DataFrame
+    features_df = pd.DataFrame.sparse.from_spmatrix(features)
+    features_df = pd.DataFrame(features.toarray(), columns=[str(i) for i in range(features.shape[1])])
+
     # prediction
-    result = model.predict(features)
+    result = model.predict(features_df)
 
     # show
     return render_template('index.html', result=result[0])
